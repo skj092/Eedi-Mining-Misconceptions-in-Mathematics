@@ -1,0 +1,11 @@
+[project]
+name = "eedi-mining-misconceptions-in-mathematics"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2.3",
+    "jupyter>=1.1.1",
+    "lab>=8.2",
+]
