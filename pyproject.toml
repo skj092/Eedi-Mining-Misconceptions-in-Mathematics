@@ -8,4 +8,5 @@ dependencies = [
     "pandas>=2.2.3",
     "jupyter>=1.1.1",
     "lab>=8.2",
+    "scikit-learn>=1.5.2",
 ]
