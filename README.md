@@ -79,11 +79,39 @@ Step4:
 5. MisconceptionId: create by pd.mel (1606 unique values)
 
 Step7:
-'QuestionId',
-'AllQuestionText',
-'CorrectAnswer',
-'AnswerType',
-'AnswerText',
-'AnswerAlphabet',
-'MisconceptionId',
-'MisconceptionAlphabet'
+- QuestionId:
+- AllQuestionText:
+- CorrectAnswer: A/B/C/D
+- AnswerType: AnswerAText/AnswerBText/AnswerCText/AnswerDText
+- AnswerText:
+- AnswerAlphabet: A/B/C/D
+- MisconceptionId:
+- MisconceptionAlphabet: A/B/C/D
+
+---------------------------
+
+## [bge model] (#)
+1. load train, test and misconception csv data
+2. data preprocessing train.csv
+    1. train.csv (1869, 16) -> train.csv (7476, 7) # (wide to long)
+    2. Add new column "AllText" which is concat of 1. ConstructName, 2. SubjectName, 3. QuestionText 4. AnswerText # (7476, 8)
+    3. Add new columnd "AnswerAlphabet" by extracting the alphabet from AnswerText # (7476, 9)
+    4. New column 'QuestionId_Answer' which is concat of QuestionId and the AnswerAlphabet # (7476, 10)
+3. data preprocessing misconcpetion.csv
+    1. misconcpetion.csv (1869, 16) -> train.csv (7476, 7) # (wide to long)
+    2. Add new columnd "AnswerAlphabet" by extracting the alphabet from MisconcpetionId # (7476, 9)
+    3. New column 'QuestionId_Answer' which is concat of QuestionId and the AnswerAlphabet # (7476, 10)
+    4. Sort by and select only two column "QuestionId_Answer" and "MisconceptionId"
+
+4. concat misconcpetion.csv to train.csv (7476, 10)
+5. load 'bge_large_en' embedding model using SentenceTransformer
+6. create embedding of train_long['AllText'] column array (7476, 1024)
+7. create embedding of misconcpetion_mapping['MisconceptionName'] column array (2887, 1024)
+8. Find cosine difference between both of the embeddng matrices - (7476, 2887)
+
+9. Get the sorted index of y in the cosine difference
+10. Select only 25 y indexes and convert this data into pandas series and add this columns into train_long dataframe
+11. filter out where misconceptionId is null from the train_long data
+12. Explode on predictmisconceptionid to convert array of index into a single value
+13. ['QuestionId', 'ConstructName', 'SubjectName', 'QuestionText', 'CorrectAnswer', 'AnswerType', 'AnswerText', 'AllText', 'AnswerAlphabet', 'QuestionId_Answer', 'MisconceptionId', 'PredictMisconceptionId', 'MisconceptionName', 'PredictMisconceptionName']
+
