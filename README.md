@@ -115,3 +115,23 @@ Step7:
 12. Explode on predictmisconceptionid to convert array of index into a single value
 13. ['QuestionId', 'ConstructName', 'SubjectName', 'QuestionText', 'CorrectAnswer', 'AnswerType', 'AnswerText', 'AllText', 'AnswerAlphabet', 'QuestionId_Answer', 'MisconceptionId', 'PredictMisconceptionId', 'MisconceptionName', 'PredictMisconceptionName']
 
+##  [SFR-Embedding-2_R](https://www.kaggle.com/competitions/eedi-mining-misconceptions-in-mathematics/discussion/543519)
+1. Set Directory paths
+2. Load LoRA model
+3. Load the test dataframe (3, 11)
+4. Preprocess the test dataframe (9, 14)
+    - Add column `query_text` which is the concat of some other columns
+    - Add column `answer_name` which is either one of 'A-D'
+    - Add column `order_index` which is index of each row.
+5. Get embedding of test dataframe
+    - A dictionary with keys are `order_index` and values are the embedding of correspond `query_text` of shape (4096,)
+6. Load the `misconcption.csv` file (5, 2)
+7. Add two column `query_text` and `order_index` and get the embeddings.
+8. Get embedding of `misconception`
+    - keys are `misconceptionId` and values are vector of shape (4096,)
+9. Reshape the `misconcption` embedding of shape (5, 4096)
+10. For each row in `test_df`:
+    - Get the query id, and use it to get the corresponding embedding
+    - Find `cosine similarity` with the `misconcption embedding`
+    - Take only 25 and get the index of all these `misconcption`
+

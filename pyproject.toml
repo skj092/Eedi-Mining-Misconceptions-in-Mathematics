@@ -20,4 +20,7 @@ dependencies = [
     "accelerate>=1.0.1",
     "wandb>=0.18.5",
     "nltk>=3.9.1",
+    "peft>=0.13.2",
+    "kagglehub>=0.3.3",
+    "bitsandbytes>=0.44.1",
 ]
