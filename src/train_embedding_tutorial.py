@@ -1,13 +1,13 @@
+import os
 from sentence_transformers.training_args import SentenceTransformerTrainingArguments
 from sentence_transformers import SentenceTransformer, losses
 import code
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from sentence_transformers.trainer import SentenceTransformerTrainer
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
 
 train_dataset = load_dataset('glue', 'mnli', split='train').select(range(100))
 train_dataset = train_dataset.remove_columns('idx')
-import os
 os.environ["WANDB_DISABLED"] = "true"
 
 
@@ -29,20 +29,28 @@ Dataset({
 }
 
 '''
+# (neutral/contracition) = 0, and (entailment)=1
+mapping = {2: 0, 1: 0, 0: 1}
+train_dataset = Dataset.from_dict({
+    'sentence1': train_dataset['premise'],
+    'sentence2': train_dataset['hypothesis'],
+    'label': [float(mapping[label]) for label in train_dataset['label']]
+}
+)
 
 embedding_model = SentenceTransformer('bert-base-uncased')
 
-train_loss = losses.SoftmaxLoss(
-    model=embedding_model, sentence_embedding_dimension=embedding_model.get_sentence_embedding_dimension(), num_labels=3)
+# Cosine similarity loss function
+train_loss = losses.CosineSimilarityLoss(model=embedding_model)
 
 
 # Embedding similarity Evaluater
 val_sts = load_dataset('glue', 'stsb', split='validation')
 evaluator = EmbeddingSimilarityEvaluator(sentences1=val_sts['sentence1'], sentences2=val_sts['sentence2'], scores=[
-                                         score/5 for score in val_sts['label']], main_similarity='cosine',)
+    score/5 for score in val_sts['label']], main_similarity='cosine',)
 
 args = SentenceTransformerTrainingArguments(
-    output_dir='base_embedding_model',
+    output_dir='cosineloss_embdding_model',
     num_train_epochs=1,
     per_gpu_train_batch_size=32,
     per_device_eval_batch_size=32,
@@ -53,12 +61,12 @@ args = SentenceTransformerTrainingArguments(
 )
 
 trainer = SentenceTransformerTrainer(
-        model=embedding_model,
-        args=args,
-        train_dataset=train_dataset,
-        loss=train_loss,
-        evaluator=evaluator,
-        )
+    model=embedding_model,
+    args=args,
+    train_dataset=train_dataset,
+    loss=train_loss,
+    evaluator=evaluator,
+)
 trainer.train()
 print(evaluator(embedding_model))
 '''
