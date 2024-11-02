@@ -135,3 +135,20 @@ Step7:
     - Find `cosine similarity` with the `misconcption embedding`
     - Take only 25 and get the index of all these `misconcption`
 
+# [AQA-KDD-2024](https://www.biendata.xyz/competition/aqa_kdd_2024/)
+
+## Problem Statement:
+- Participants are tasked with training a model using a dataset derived from OAG-QA, which contains questions and papers mentioned in the answers.
+- OAG-QA retrieves question posts from StackExchange and Zhihu websites, extracts the paper URL mentioned in the answer, and matches it with the paper in OAG.
+- In this competition, participants are provided with datasets of questions and are required to find papers that best match these questions.
+
+
+
+
+# Training an Embedding model
+- We train an embedding model by `contrastitve` method.
+- `Contrastive` model aim to have similar document to have similar embedding.
+- We can use `cross-encoder` and `bi-encoder` to train an embedding model.
+- `cross-encoder` is computional expensive, which `bi-encoder` is not.
+- To train a `bi-encoder` model we use `NLI` dataset.
+- `NLI` refer to the task of investigating wheter, for givem premise, it entails the hypothesis (entailment), contradict it (contradiction), or neither (neutral).
