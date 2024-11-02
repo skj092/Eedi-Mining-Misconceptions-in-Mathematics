@@ -1,3 +1,4 @@
+import random
 import os
 from sentence_transformers.training_args import SentenceTransformerTrainingArguments
 from sentence_transformers import SentenceTransformer, losses
@@ -5,9 +6,10 @@ import code
 from datasets import Dataset, load_dataset
 from sentence_transformers.trainer import SentenceTransformerTrainer
 from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
+from tqdm import tqdm
 
-train_dataset = load_dataset('glue', 'mnli', split='train').select(range(100))
-train_dataset = train_dataset.remove_columns('idx')
+mnli = load_dataset('glue', 'mnli', split='train').select(range(100))
+train_dataset = mnli.remove_columns('idx')
 os.environ["WANDB_DISABLED"] = "true"
 
 
@@ -29,19 +31,25 @@ Dataset({
 }
 
 '''
-# (neutral/contracition) = 0, and (entailment)=1
-mapping = {2: 0, 1: 0, 0: 1}
-train_dataset = Dataset.from_dict({
-    'sentence1': train_dataset['premise'],
-    'sentence2': train_dataset['hypothesis'],
-    'label': [float(mapping[label]) for label in train_dataset['label']]
-}
-)
+# Select only similar pair
+mnli = mnli.filter(
+    lambda x: True if x['label'] == 0 else False)
+
+train_dataset = {"anchor": [], "positive": [], "negative": []}
+soft_negative = mnli['hypothesis']
+random.shuffle(soft_negative)
+for row, soft_negative in tqdm(zip(mnli, soft_negative)):
+    train_dataset['anchor'].append(row['premise'])
+    train_dataset['positive'].append(row['hypothesis'])
+    train_dataset['negative'].append(soft_negative)
+train_dataset = Dataset.from_dict(train_dataset)
+print(f"lenght of train dataset {len(train_dataset)}")
+
 
 embedding_model = SentenceTransformer('bert-base-uncased')
 
-# Cosine similarity loss function
-train_loss = losses.CosineSimilarityLoss(model=embedding_model)
+# MultipleNegativesRankingLoss
+train_loss = losses.MultipleNegativesRankingLoss(model=embedding_model)
 
 
 # Embedding similarity Evaluater

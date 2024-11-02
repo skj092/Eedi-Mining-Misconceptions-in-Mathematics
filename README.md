@@ -152,3 +152,23 @@ Step7:
 - `cross-encoder` is computional expensive, which `bi-encoder` is not.
 - To train a `bi-encoder` model we use `NLI` dataset.
 - `NLI` refer to the task of investigating wheter, for givem premise, it entails the hypothesis (entailment), contradict it (contradiction), or neither (neutral).
+
+## Data Preparation for Multiple negative randing loss
+```python
+mnli = load_dataset("glue", "mnli", split="train").select(range(50_000))
+mnli = mnli.remove_columns("idx")
+mnli = mnli.filter(lambda x: True if x["label"] == 0 else False)
+
+# Prepare data and add a soft negative
+train_dataset = {"anchor": [], "positive": [], "negative": []}
+soft_negatives = mnli["hypothesis"]
+random.shuffle(soft_negatives)
+for row, soft_negative in tqdm(zip(mnli, soft_negatives)):
+    # for all the row `premise` and `hypothesis` represent same meaning (because of filter)
+    train_dataset["anchor"].append(row["premise"])
+    train_dataset["positive"].append(row["hypothesis"])
+    train_dataset["negative"].append(soft_negative)
+train_dataset = Dataset.from_dict(train_dataset)
+```
+
+
